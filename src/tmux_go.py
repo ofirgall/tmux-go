@@ -8,7 +8,6 @@
 import pyzshcomplete
 import argcomplete
 import argparse
-import libtmux
 import subprocess
 import os
 import re
@@ -119,14 +118,14 @@ def go_to_session_in_task(task_id: str):
             break
 
 def main():
-    server = libtmux.Server()
-    sessions = server.list_sessions()
+    sessions = subprocess.check_output(['tmux', 'list-sessions', '-F', '#S']).decode().splitlines()
+    sessions.append(LAST_SESSION_KEYWORD)
     # import IPython
     # IPython.embed()
 
     parser = argparse.ArgumentParser('Go to Tmux Session')
 
-    parser.add_argument('-s', '--session', choices=[LAST_SESSION_KEYWORD] + [s['session_name'] for s in sessions], default=None)
+    parser.add_argument('-s', '--session', choices=sessions, default=None)
     parser.add_argument('-t', '--task', type=str)
 
     argcomplete.autocomplete(parser)
