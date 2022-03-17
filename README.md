@@ -17,7 +17,5 @@ TODO: complete this
 --- 
 
 ## TODO
-* tmux-go - binds for last
-* tmux-go - like ctrl+tab and ctrl+shift+tab
 * tmux-go - close all windows in the workspace
 * tmux-go - create new session (workspace)

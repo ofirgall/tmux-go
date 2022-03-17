@@ -5,6 +5,7 @@
 
 # NOTE: sessions window title must have "tmux-go-session:{session}"
 
+from typing import Optional
 import pyzshcomplete
 import argcomplete
 import argparse
@@ -13,9 +14,7 @@ import os
 import re
 from os import path
 from taskw import TaskWarrior
-
-LAST_JUMPED_SESSION_FILE = path.expandvars(path.join('$HOME', '.tmux_go_last'))
-LAST_SESSION_KEYWORD = 'last'
+import session_history
 
 class TmuxGoMultipleDesktops(Exception):
     def __init__(self, message):
@@ -28,10 +27,6 @@ class TmuxGoSessioNotFound(Exception):
 class TmuxGoActiveSessionNotFound(Exception):
     def __init__(self, message):
         super().__init__(message)
-
-def get_last_session_name() -> str:
-    with open(LAST_JUMPED_SESSION_FILE, 'r') as f:
-        return f.read()
 
 def get_last_desktop() -> int:
     return int(subprocess.check_output(['wmctrl', '-d']).splitlines()[-1].split(b' ')[0])
@@ -84,20 +79,20 @@ def get_active_session_in_desktop(desktop_id: int) -> str:
 
     raise TmuxGoActiveSessionNotFound('Active Session Not Found')
 
-def go_to_workspace(session: str) -> bool:
-    if session == LAST_SESSION_KEYWORD:
-        session = get_last_session_name()
+def go_to_workspace(session: Optional[str], add_to_hist=True) -> bool:
+    # Dont jump
+    if session is None:
+        return True
 
     try:
         current_session = get_active_session_in_desktop(get_current_desktop())
         if session == current_session: # Don't jump if target session is the active
             return True
-
-        with open(LAST_JUMPED_SESSION_FILE, 'w') as f:
-            f.write(current_session)
     except TmuxGoActiveSessionNotFound:
         pass
 
+    if add_to_hist:
+        session_history.add(session)
     subprocess.check_call(['wmctrl', '-s', str(get_desktop_with_session(session))])
     return True
 
@@ -119,7 +114,6 @@ def go_to_session_in_task(task_id: str):
 
 def main():
     sessions = subprocess.check_output(['tmux', 'list-sessions', '-F', '#S']).decode().splitlines()
-    sessions.append(LAST_SESSION_KEYWORD)
     # import IPython
     # IPython.embed()
 
@@ -127,13 +121,22 @@ def main():
 
     parser.add_argument('-s', '--session', choices=sessions, default=None)
     parser.add_argument('-t', '--task', type=str)
+    parser.add_argument('--last', action='store_true')
+    parser.add_argument('--prev', action='store_true')
+    parser.add_argument('--next', action='store_true')
 
     argcomplete.autocomplete(parser)
     pyzshcomplete.autocomplete(parser)
 
     args = parser.parse_args()
 
-    if args.session:
+    if args.last:
+        go_to_workspace(session_history.last(), add_to_hist=False)
+    elif args.prev:
+        go_to_workspace(session_history.prev(), add_to_hist=False)
+    elif args.next:
+        go_to_workspace(session_history.next(), add_to_hist=False)
+    elif args.session:
         go_to_session(args.session)
     elif args.task:
         go_to_session_in_task(args.task)
