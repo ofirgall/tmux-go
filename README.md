@@ -7,6 +7,10 @@ Go to your tmux session as quickly as possible
 * Auto set your terminal title to `tmux-go-session:{session_name}`
 * Install tmux-go plugin to your launcher
 
+```bash
+python3 -m pip install -r requirements.txt
+```
+
 ## Usage
 TODO: complete this
 

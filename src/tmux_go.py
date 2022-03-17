@@ -12,6 +12,7 @@ import libtmux
 import subprocess
 import re
 from os import path
+from taskw import TaskWarrior
 
 LAST_JUMPED_SESSION_FILE = path.expandvars(path.join('$HOME', '.tmux_go_last'))
 LAST_SESSION_KEYWORD = 'last'
@@ -110,6 +111,16 @@ def go_to_session(session: str):
     except TmuxGoSessioNotFound:
         new_terminal_with_session(session, get_last_desktop(), True)
 
+def go_to_session_in_task(task_id: str):
+    warrior = TaskWarrior()
+    task = warrior.get_task(uuid=task_id)[1]
+
+    for annotation in task['annotations']:
+        desc = annotation['description']
+        if desc.startswith('tmux:'):
+            go_to_session(desc[len('tmux:'):])
+            break
+
 def main():
     server = libtmux.Server()
     sessions = server.list_sessions()
@@ -118,14 +129,19 @@ def main():
 
     parser = argparse.ArgumentParser('Go to Tmux Session')
 
-    parser.add_argument('session', choices=[LAST_SESSION_KEYWORD] + [s['session_name'] for s in sessions])
+    parser.add_argument('-s', '--session', choices=[LAST_SESSION_KEYWORD] + [s['session_name'] for s in sessions], default=None)
+    parser.add_argument('-t', '--task', type=str)
 
     argcomplete.autocomplete(parser)
     pyzshcomplete.autocomplete(parser)
 
     args = parser.parse_args()
 
-    go_to_session(args.session)
+    if args.session:
+        go_to_session(args.session)
+    elif args.task:
+        go_to_session_in_task(args.task)
+
 
 if __name__ == '__main__':
     main()
