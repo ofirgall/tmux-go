@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-session=$(tmux ls -F '#S' | fzf --reverse --header="Select Tmux Session. Ctrl-C to exit.")
+
+BACKGROUND="#2b1c07"
+session=$(tmux ls -F '#S' | fzf --reverse --header="Select Tmux Session. Ctrl-C to exit." --color="bg:$BACKGROUND")
 
 # ctrl-c
 if [ -z $session ]; then
