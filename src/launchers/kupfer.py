@@ -10,7 +10,7 @@ import libtmux
 
 import sys
 import os
-sys.path.append(os.path.expandvars('$HOME/dotfiles_scripts/'))
+sys.path.append(os.path.expandvars('$HOME/.tmux/tmux-go/src/'))
 from tmux_go import go_to_session, get_last_session_name, LAST_SESSION_KEYWORD
 
 class OpenTmuxSession(Action):

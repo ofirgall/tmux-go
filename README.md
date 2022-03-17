@@ -2,7 +2,8 @@
 Go to your tmux session as quickly as possible
 
 ## Install
-* Call `./src/tmux_go_attach.sh` at your end of your `.shellrc`
+* Place this repo at `$HOME/.tmux/tmux-go`
+* Call `$HOME/.tmux/tmux-go/src/tmux_go_attach.sh` at your end of your `.shellrc`
 * Auto set your terminal title to `tmux-go-session:{session_name}`
 * Install tmux-go plugin to your launcher
 
