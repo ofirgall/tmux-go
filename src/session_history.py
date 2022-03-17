@@ -16,8 +16,14 @@ def add(session: str):
             hist.sessions = hist.sessions[hist.index:]
             hist.index = 0
 
-        hist.sessions.insert(0, session) # First is Last
         hist.is_in_last = False
+        try:
+            # Dont add same session after each other
+            if hist.sessions[0] == session:
+                return
+        except IndexError:
+            pass
+        hist.sessions.insert(0, session) # First is Last
 
 def last() -> Optional[str]:
     with _hist_ctx() as hist:
