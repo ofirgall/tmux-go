@@ -13,6 +13,7 @@ TODO: complete this
 --- 
 
 ## TODO
+* move to pyimgui instead of launchers
 * tmux-go - binds for last
 * tmux-go - like ctrl+tab and ctrl+shift+tab
 * tmux-go - close all windows in the workspace
