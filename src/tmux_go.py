@@ -10,6 +10,7 @@ import argcomplete
 import argparse
 import libtmux
 import subprocess
+import os
 import re
 from os import path
 from taskw import TaskWarrior
@@ -33,10 +34,6 @@ def get_last_session_name() -> str:
     with open(LAST_JUMPED_SESSION_FILE, 'r') as f:
         return f.read()
 
-def yes_no_prompt(question: str) -> bool:
-    answer = input(f'{question}? [Y/n] ')
-    return answer.lower() != 'n'
-
 def get_last_desktop() -> int:
     return int(subprocess.check_output(['wmctrl', '-d']).splitlines()[-1].split(b' ')[0])
 
@@ -45,7 +42,7 @@ def goto_desktop(desktop_id: int):
 
 def new_terminal_with_session(session: str, desktop_id: int, go_after_create: bool):
     shell = subprocess.check_output(['echo $SHELL'], shell=True).decode().strip()
-    subprocess.Popen(['/usr/bin/x-terminal-emulator', '-t', f'tmux-go-session:{session}', '-e', shell, '-c', f'export OPEN_TMUX_SESSION={session}; export OPEN_AT_DESK={desktop_id}; zsh -i'])
+    subprocess.Popen(['/usr/bin/x-terminal-emulator', '-t', f'tmux-go-session:{session}', '-e', shell, '-c', f'export OPEN_TMUX_SESSION={session}; export OPEN_AT_DESK={desktop_id}; zsh -i'], preexec_fn=os.setpgrp)
 
     if go_after_create:
         goto_desktop(desktop_id)
