@@ -10,32 +10,25 @@ from dataclasses_json import dataclass_json
 HISTORY_FILE = path.expandvars(path.join('$HOME', '.tmux_go_history'))
 HISTORY_SIZE = 100
 
-def add(session: str):
+def add(session: str, reset_in_last: bool):
     with _hist_ctx() as hist:
         if hist.index > 0: # dump old history
             hist.sessions = hist.sessions[hist.index:]
             hist.index = 0
 
-        hist.is_in_last = False
+        # Remove the session from the list first, make it unique
         try:
-            # Dont add same session after each other
-            if hist.sessions[0] == session:
-                return
-        except IndexError:
+            hist.sessions.remove(session)
+        except ValueError:
             pass
         hist.sessions.insert(0, session) # First is Last
 
 def last() -> Optional[str]:
     with _hist_ctx() as hist:
-        if len(hist.sessions) < 2:
+        if len(hist.sessions) < 1:
             return None
 
-        if hist.is_in_last:
-            hist.is_in_last = False
-            return hist.sessions[hist.index]
-
-        hist.is_in_last = True
-        return hist.sessions[hist.index + 1]
+        return hist.sessions[0]
 
 def prev() -> Optional[str]:
     with _hist_ctx() as hist:
@@ -44,7 +37,6 @@ def prev() -> Optional[str]:
             return None # Index is already last, dont move
 
         hist.index += 1
-        hist.is_in_last = False
         return hist.sessions[hist.index]
 
 def next() -> Optional[str]:
@@ -53,15 +45,13 @@ def next() -> Optional[str]:
             return None # Index is already first, dont move
 
         hist.index -= 1
-        hist.is_in_last = False
         return hist.sessions[hist.index]
 
 @dataclass_json
 @dataclass
 class History:
-    sessions: List[str] = field(default_factory=lambda: [])
+    sessions: List[str] = field(default_factory=lambda: []) # Unique List
     index: int = 0 # 0 = last
-    is_in_last: bool = False
 
 @contextmanager
 def _hist_ctx() -> Iterator[History]:

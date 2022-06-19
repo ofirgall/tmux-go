@@ -79,7 +79,7 @@ def get_active_session_in_desktop(desktop_id: int) -> str:
 
     raise TmuxGoActiveSessionNotFound('Active Session Not Found')
 
-def go_to_workspace(session: Optional[str], add_to_hist=True) -> bool:
+def go_to_workspace(session: Optional[str], add_to_hist=True, reset_in_last=True) -> bool:
     # Dont jump
     if session is None:
         return True
@@ -88,11 +88,12 @@ def go_to_workspace(session: Optional[str], add_to_hist=True) -> bool:
         current_session = get_active_session_in_desktop(get_current_desktop())
         if session == current_session: # Don't jump if target session is the active
             return True
+
+        if add_to_hist:
+            session_history.add(current_session, reset_in_last)
     except TmuxGoActiveSessionNotFound:
         pass
 
-    if add_to_hist:
-        session_history.add(session)
     subprocess.check_call(['wmctrl', '-s', str(get_desktop_with_session(session))])
     return True
 
@@ -131,7 +132,7 @@ def main():
     args = parser.parse_args()
 
     if args.last:
-        go_to_workspace(session_history.last(), add_to_hist=False)
+        go_to_workspace(session_history.last(), add_to_hist=True)
     elif args.prev:
         go_to_workspace(session_history.prev(), add_to_hist=False)
     elif args.next:
